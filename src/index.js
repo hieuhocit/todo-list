@@ -2,14 +2,7 @@
 import "./styles/style.css";
 
 // Components
-import App from "./pages/App"
-
-// const todoItem = {
-//     title,
-//     description,
-//     dueDate,
-//     priority,
-// }
+import App from "./pages/App";
 
 // const projects = {
 //     title,
@@ -18,4 +11,5 @@ import App from "./pages/App"
 
 // const todo = []
 
-document.body.innerHTML = App();
+
+new App().createRoot(document.querySelector("#root"));
