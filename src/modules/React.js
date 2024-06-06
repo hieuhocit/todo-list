@@ -1,3 +1,5 @@
+import Storage from "./Storage";
+
 class React {
     constructor(props) {
         this.props = props;
@@ -14,6 +16,8 @@ class React {
         } else {
             this.state = newState;
         }
+        
+        Storage.storeData(this.state);
 
         if (renderNow) {
             this.root.innerHTML = "";

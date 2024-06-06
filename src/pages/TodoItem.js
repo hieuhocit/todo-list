@@ -1,4 +1,5 @@
-import React from "./React";
+import React from "../modules/React";
+import CreateElement from "../modules/CreateElement";
 
 class TodoItem extends React {
     constructor(props) {
@@ -17,59 +18,104 @@ class TodoItem extends React {
         return `${day}/${month}/${year}`;
     }
 
-    handleChange(e, index) {
-        this.props.onChange(index, e.target.name, e.target.checked);
+    handleChange(e, title, projectName) {
+        this.props.onChange(title, projectName, e.target.name, e.target.checked);
     }
 
     render() {
-        const item = document.createElement("div");
-        item.setAttribute("data-key", this.props.key);
-        item.className = "item";
-
         // Info container
-        const infoContainer = document.createElement("div");
-        infoContainer.className = "info-container";
+        const infoContainer = CreateElement({
+            tag: "div",
+            classList: ["info-container"],
+        });
 
         infoContainer.innerHTML += `
             <p class="title">${this.props.item.title}</p>
             <p class="date-created">${this.#handleFormatDate(this.props.item.dateCreated)}</p>
         `;
 
-        const checkbox = document.createElement("input");
-        checkbox.setAttribute("type", "checkbox");
-        checkbox.setAttribute("name", "completed");
-        checkbox.setAttribute("id", "completed");
-        if (this.props.item.completed) checkbox.setAttribute("checked", true);
-
-        checkbox.addEventListener("change", (e) => this.handleChange(e, this.props.key));
+        const checkbox = CreateElement({
+            tag: "input",
+            attributes: [
+                {
+                    name: "type",
+                    value: "checkbox"
+                },
+                {
+                    name: "name",
+                    value: "completed"
+                },
+                {
+                    name: "id",
+                    value: "completed"
+                },
+                {
+                    name: this.props.item.completed && "checked",
+                    value: true
+                }
+            ],
+            events: [
+                {
+                    type: "change",
+                    onEvent: (e) => this.handleChange(e, this.props.item.title, this.props.projectName)
+                }
+            ]
+        });
 
         infoContainer.insertBefore(checkbox, infoContainer.firstChild);
 
-
         // Actions container
-        const actionsContainer = document.createElement("div");
-        actionsContainer.className = "actions-container";
+        const btnDetail = CreateElement({
+            tag: "button",
+            textContent: "DETAILS",
+            classList: ["detail", "btn"],
+            events: [
+                {
+                    type: "click",
+                    onEvent: () => this.props.onShowDetail(this.props.item.title, this.props.projectName)
+                }
+            ]
+        });
 
-        const btnDetail = document.createElement("button");
-        const btnEdit = document.createElement("i");
-        const btnDelete = document.createElement("i");
+        const btnEdit = CreateElement({
+            tag: "i",
+            classList: ["edit", "fa-regular", "fa-pen-to-square"],
+            events: [
+                {
+                    type: "click",
+                    onEvent: () => this.props.onEdit(this.props.item.title, this.props.projectName)
+                }
+            ]
+        });
 
-        btnDetail.textContent = "DETAILS";
-        btnDetail.className = "detail btn";
-        btnEdit.className = "edit fa-regular fa-pen-to-square";
-        btnDelete.className = "delete fa-solid fa-trash";
+        const btnDelete = CreateElement({
+            tag: "i",
+            classList: ["delete", "fa-solid", "fa-trash"],
+            events: [
+                {
+                    type: "click",
+                    onEvent: () => this.props.onDelete(this.props.item.title, this.props.projectName)
+                }
+            ]
+        });
 
-        btnDelete.addEventListener("click", () => this.props.onDelete(this.props.key));
-        btnDetail.addEventListener("click", () => this.props.onShowDetail(this.props.key));
-        btnEdit.addEventListener("click", () => this.props.onEdit(this.props.key));
+        const actionsContainer = CreateElement({
+            tag: "div",
+            classList: ["actions-container"],
+            children: [btnDetail, btnEdit, btnDelete]
+        });
 
-        actionsContainer.appendChild(btnDetail);
-        actionsContainer.appendChild(btnEdit);
-        actionsContainer.appendChild(btnDelete);
-
-        // Append 
-        item.appendChild(infoContainer);
-        item.appendChild(actionsContainer);
+        const item = CreateElement({
+            tag: "div",
+            classList: ["item",`border-left-${this.props.item.priority}`],
+            attributes: [
+                {
+                    name: "data-title",
+                    value: this.props.item.title
+                }
+            ],
+            children: [infoContainer, actionsContainer]
+        });
 
         return item;
     }

@@ -1,78 +1,128 @@
-import React from "./React";
-import TodoItem from "./TodoItem";
+import React from "../modules/React";
+import CreateElement from "../modules/CreateElement";
 import Detail from "./Detail";
 import Editor from "./Editor";
+import Main from "./Main";
+import TodoList from "../modules/TodoList";
+import Add from "./Add";
+import Storage from "../modules/Storage";
+import Project from "../modules/Project";
+import Todo from "../modules/Todo";
 
 class App extends React {
     constructor(props) {
         super(props);
-        this.state = {
-            list: [
-                {
-                    title: "Todo1",
-                    description: "Do something interesting",
-                    dateCreated: new Date(),
-                    dueDate: new Date("2024-06-10"),
-                    priority: 1,
-                    completed: false
-                },
-                {
-                    title: "Todo2",
-                    description: "Do something interesting",
-                    dateCreated: new Date(),
-                    dueDate: new Date("2024-06-10"),
-                    priority: 1,
-                    completed: true
-                },
-            ]
+        this.state = Storage.getData() || {
+            TodoList: new TodoList(),
+            onTab: "todos"
         }
     }
 
-    handleDelete = (index) => {
+    handleDelete = (title, projectName) => {
         this.setState((state) => {
-            const newList = [...state.list];
-            newList.splice(index, 1);
-            return {
-                list: newList
-            };
+            state.TodoList.getProject(projectName).deleteTodo(title);
+            return state;
         });
     }
 
-    handleShowDetail = (index) => {
-        new Detail({ item: this.state.list[index] }).createRoot(document.body);
+    handleShowDetail = (title, projectName) => {
+        const item = this.state.TodoList.getProject(projectName).getTodo(title);
+        new Detail({ item, projectName }).createRoot(document.body);
     }
 
-    handleEdit = (index) => {
-        new Editor({ item: this.state.list[index], onSave: this.handleSave, index }).createRoot(document.body);
+    handleEdit = (title, projectName) => {
+        const item = this.state.TodoList.getProject(projectName).getTodo(title);
+        new Editor({ item, onSave: this.handleSave, projectName }).createRoot(document.body);
     }
 
-    handleSave = (index, item) => {
+    handleSave = (item, title, projectName) => {
         this.setState((state) => {
-            const newList = [...state.list];
-            newList[index] = item;
-            return {
-                list: newList
-            }
+            const index = state.TodoList.getProject(projectName).getIndexTodo(title);
+            const newTodo = new Todo(item.title, item.description, new Date(item.dateCreated), new Date(item.dueDate), item.priority, item.completed);
+            state.TodoList.getProject(projectName).getTodos()[index] = newTodo;
+            return state;
+        });
+        console.log(this.state)
+    }
+
+    handleChangeCompleted = (title, projectName, key, value) => {
+        this.setState((state) => {
+            state.TodoList.getProject(projectName).getTodo(title)[key] = value;
+            return state;
         });
     }
 
-    handleChangeCompleted = (index, key, value) => {
-        this.setState((state) => {
-            const newList = [...state.list];
-            newList[index][key] = value;
-            return {
-                list: newList
-            }
-        }, false);
+    handleSwitch = (e) => {
+        if (e.target.name === this.state.onTab) return;
+        this.setState(state => ({
+            ...state,
+            onTab: e.target.name
+        }));
+    }
+
+    handleDeleteProject = (e) => {
+        const projectName = e.target.getAttribute("key");
+        this.setState(state => {
+            state.TodoList.deleteProject(projectName);
+            state.onTab = "todos"
+            return state;
+        });
+    }
+
+    handleShowAdd = () => {
+        new Add({
+            projects: this.state.TodoList.getProjects(),
+            onAddTodo: this.handleAddTodo,
+            onAddProject: this.handleAddProject
+        }).createRoot(document.body);
+    }
+
+    handleAddTodo = (todo, projectName) => {
+        this.setState(state => {
+            const project = this.state.TodoList.getProject(projectName);
+            project.addTodo(todo);
+            return state;
+        });
+    }
+
+    handleAddProject = (project) => {
+        this.setState(state => {
+            this.state.TodoList.addProject(project);
+            return state;
+        });
     }
 
     render() {
-        const todoContainer = document.createElement("div");
-        todoContainer.className = "todo-container";
-        this.state.list.map((item, key) => {
-            new TodoItem({ item, key, onDelete: this.handleDelete, onShowDetail: this.handleShowDetail, onEdit: this.handleEdit, onChange: this.handleChangeCompleted }).createRoot(todoContainer);
+        const heading = CreateElement({
+            tag: "h1",
+            textContent: "Todo List",
+            classList: ["heading"]
         });
-        return todoContainer;
+
+        const app = CreateElement({
+            tag: "div",
+            attributes: [
+                {
+                    name: "id",
+                    value: "root"
+                }
+            ],
+            children: [heading]
+        });
+
+        new Main({
+            TodoList: this.state.TodoList,
+            onTab: this.state.onTab,
+            onDelete: this.handleDelete,
+            onShowDetail: this.handleShowDetail,
+            onEdit: this.handleEdit,
+            onChange: this.handleChangeCompleted,
+            onSwitch: this.handleSwitch,
+            onDeleteProject: this.handleDeleteProject,
+            onShowAdd: this.handleShowAdd
+        }).createRoot(app);
+
+        return app;
     }
 }
 

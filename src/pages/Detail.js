@@ -1,4 +1,5 @@
-import React from "./React";
+import React from "../modules/React";
+import CreateElement from "../modules/CreateElement";
 
 class Detail extends React {
     constructor(props) {
@@ -22,10 +23,16 @@ class Detail extends React {
     }
 
     render() {
-        const popup = document.createElement("div");
-        const detail = document.createElement("div");
-        popup.className = "popup";
-        detail.className = "detail";
+        const popup = CreateElement({
+            tag: "div",
+            classList: ["popup"],
+        });
+
+        const detail = CreateElement({
+            tag: "div",
+            classList: ["detail"]
+        });
+
         detail.innerHTML = `
             <div class="detail">
                 <p class="title"><span>Title:</span> ${this.props.item.title}</p>
@@ -34,11 +41,20 @@ class Detail extends React {
                 <p class="due-date"><span>Date due:</span> ${this.#handleFormatDate(this.props.item.dueDate)}</p>
                 <p class="priority"><span>Priority:</span> ${this.props.item.priority}</p>
                 <p class="detail-completed"><span>Completed:</span> ${this.props.item.completed ? "Completed" : "Not completed"}</p>
+                <p class="project-name"><span>Project Name:</span> ${this.props.projectName}</p>
             </div>
         `;
-        const btnClose = document.createElement("i");
-        btnClose.className = "btn-close fa-solid fa-xmark";
-        btnClose.addEventListener("click", () => this.handleClosePopup(popup));
+
+        const btnClose = CreateElement({
+            tag: "i",
+            classList: ["btn-close", "fa-solid", "fa-xmark"],
+            events: [
+                {
+                    type: "click",
+                    onEvent: () => this.handleClosePopup(popup)
+                }
+            ]
+        });
 
         detail.appendChild(btnClose);
         popup.appendChild(detail);

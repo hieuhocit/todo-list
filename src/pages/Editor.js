@@ -1,4 +1,5 @@
-import React from "./React";
+import React from "../modules/React";
+import CreateElement from "../modules/CreateElement";
 
 class Editor extends React {
     constructor(props) {
@@ -33,16 +34,21 @@ class Editor extends React {
                 item[input.name] = input.value;
             }
         });
-        this.props.onSave(this.props.index, item);
+        this.props.onSave(item, this.props.item.title, this.props.projectName);
         edit.parentElement.remove();
     }
 
     render() {
-        const popup = document.createElement("div");
-        const edit = document.createElement("div");
-        popup.className = "popup";
-        edit.className = "editor";
-        edit.setAttribute("name", "editor");
+        const edit = CreateElement({
+            tag: "div",
+            classList: ["editor"],
+            attributes: [
+                {
+                    name: "name",
+                    value: "editor"
+                }
+            ],
+        });
 
         edit.innerHTML = `
             <label>
@@ -70,34 +76,58 @@ class Editor extends React {
                 <input type="checkbox" name="completed" ${this.props.item.completed && "checked"}/>
             </label>
         `;
-        const btnClose = document.createElement("i");
-        const btnContainer = document.createElement("div");
-        const btnSave = document.createElement("button");
-        const btnCancel = document.createElement("button");
+        const btnClose = CreateElement({
+            tag: "i",
+            classList: ["btn-close", "fa-solid", "fa-xmark"],
+            events: [
+                {
+                    type: "click",
+                    onEvent: () => this.handleClosePopup(popup)
+                }
+            ]
+        });
 
-        btnSave.textContent = "Save";
-        btnCancel.textContent = "Cancel";
+        const btnSave = CreateElement({
+            tag: "button",
+            classList: ["btn"],
+            textContent: "Save",
+            events: [
+                {
+                    type: "click",
+                    onEvent: () => this.handleSave(edit)
+                }
+            ]
+        });
 
-        btnContainer.className = "btn-container";
-        btnSave.className = "btn";
-        btnCancel.className = "btn";
+        const btnCancel = CreateElement({
+            tag: "button",
+            classList: ["btn"],
+            textContent: "Cancel",
+            events: [
+                {
+                    type: "click",
+                    onEvent: () => this.handleClosePopup(popup)
+                }
+            ]
+        });
 
-        btnClose.className = "btn-close fa-solid fa-xmark";
-
-        btnClose.addEventListener("click", () => this.handleClosePopup(popup));
-        btnCancel.addEventListener("click", () => this.handleClosePopup(popup));
-        btnSave.addEventListener("click", () => this.handleSave(edit));
-
-        btnContainer.appendChild(btnSave);
-        btnContainer.appendChild(btnCancel);
+        const btnContainer = CreateElement({
+            tag: "div",
+            classList: ["btn-container"],
+            children: [btnSave, btnCancel]
+        });
 
         edit.appendChild(btnClose);
         edit.appendChild(btnContainer);
-        popup.appendChild(edit);
+
+        const popup = CreateElement({
+            tag: "div",
+            classList: ["popup"],
+            children: [edit]
+        });
+
         return popup;
     }
 }
-
-
 
 export default Editor;
